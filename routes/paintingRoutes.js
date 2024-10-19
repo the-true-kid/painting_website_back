@@ -2,24 +2,22 @@ const express = require('express');
 const router = express.Router();
 const { Painting, Picture } = require('../models');
 
-// Get all paintings with their associated main pictures, with optional limit
+// Get all paintings with their associated main pictures
 router.get('/', async (req, res) => {
-    const limit = req.query.limit ? parseInt(req.query.limit) : null;  // Check if limit is provided
-
     try {
         const paintings = await Painting.findAll({
             include: [
                 {
                     model: Picture,
                     as: 'pictures',
-                    where: { is_main: true },  // Only include the main picture
-                    attributes: ['picture_url', 'alt_text'],  // Only return picture details
+                    where: { is_main: true },
+                    attributes: ['picture_url', 'alt_text'],
                 }
-            ],
-            limit: limit  // Apply limit if provided in the query params
+            ]
         });
         res.json(paintings);
     } catch (error) {
+        console.error('Error fetching paintings:', error);
         res.status(500).json({ error: 'An error occurred while fetching paintings' });
     }
 });
@@ -33,7 +31,7 @@ router.get('/:id', async (req, res) => {
                 {
                     model: Picture,
                     as: 'pictures',
-                    attributes: ['picture_url', 'alt_text', 'is_main'],  // Return all pictures for the painting
+                    attributes: ['picture_url', 'alt_text', 'is_main'],
                 }
             ]
         });
@@ -44,6 +42,7 @@ router.get('/:id', async (req, res) => {
 
         res.json(painting);
     } catch (error) {
+        console.error('Error fetching painting:', error);
         res.status(500).json({ error: 'An error occurred while fetching the painting' });
     }
 });
