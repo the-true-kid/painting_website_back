@@ -1,20 +1,26 @@
 const express = require('express');
 const router = express.Router();
-const { Painting, Picture } = require('../models');
+const db = require('../db'); // Import the database helper
 
-// Get all paintings with their associated main pictures
+// Get all paintings
 router.get('/', async (req, res) => {
     try {
-        const paintings = await Painting.findAll({
-            include: [
-                {
-                    model: Picture,
-                    as: 'pictures',
-                    where: { is_main: true },
-                    attributes: ['picture_url', 'alt_text'],
-                }
-            ]
-        });
+        const query = `
+            SELECT 
+                id, 
+                title, 
+                description, 
+                date_created, 
+                price, 
+                stock, 
+                width, 
+                height, 
+                picture_url, 
+                alt_text
+            FROM paintings;
+        `;
+        const paintings = await db.query(query);
+
         res.json(paintings);
     } catch (error) {
         console.error('Error fetching paintings:', error);
@@ -22,25 +28,31 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get a single painting by ID with all associated pictures
+// Get a single painting by ID
 router.get('/:id', async (req, res) => {
     try {
-        const painting = await Painting.findOne({
-            where: { id: req.params.id },
-            include: [
-                {
-                    model: Picture,
-                    as: 'pictures',
-                    attributes: ['picture_url', 'alt_text', 'is_main'],
-                }
-            ]
-        });
+        const query = `
+            SELECT 
+                id, 
+                title, 
+                description, 
+                date_created, 
+                price, 
+                stock, 
+                width, 
+                height, 
+                picture_url, 
+                alt_text
+            FROM paintings
+            WHERE id = $1;
+        `;
+        const painting = await db.query(query, [req.params.id]);
 
-        if (!painting) {
+        if (painting.length === 0) {
             return res.status(404).json({ error: 'Painting not found' });
         }
 
-        res.json(painting);
+        res.json(painting[0]); // Return the single painting object
     } catch (error) {
         console.error('Error fetching painting:', error);
         res.status(500).json({ error: 'An error occurred while fetching the painting' });
