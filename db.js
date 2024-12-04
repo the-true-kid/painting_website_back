@@ -1,13 +1,9 @@
 const { Pool } = require('pg');
 require('dotenv').config(); // Load environment variables from .env
 
-// Configure the connection pool using environment variables
+// Configure the connection pool using DATABASE_URL
 const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT || 5432, // Default to 5432 if not specified
+    connectionString: process.env.DATABASE_URL, // Use a single environment variable for the URL
     ssl: {
         rejectUnauthorized: false, // Required for Render's external connections
     },
